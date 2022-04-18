@@ -107,6 +107,14 @@ def _run_training(train_folder,
     return True, output.stdout
 
 
+@st.cache(suppress_st_warning=True)
+def process_zip(file_object):
+    if file_object is not None:
+        with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+            zip_ref.extractall(training_dir)
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--temp_data_dir', required=False,
@@ -117,58 +125,61 @@ if __name__ == '__main__':
     data_dir = args.temp_data_dir
     os.makedirs(data_dir, exist_ok=True)
 
+    training_was_successful = None
     uploaded_file = st.file_uploader("Upload cellpose training data", type="zip")
     if uploaded_file is not None:
         # Display bar:
         # my_bar = st.progress(0)
+        btn = st.button("Start training")
+        if btn:
+            model_name, _ = os.path.splitext(uploaded_file.name)
+            training_id = random.randint(0, 10000)
+            training_dir = os.path.join(data_dir, "training_data_{}_{}".format(model_name, training_id))
+            training_dir = os.path.abspath(training_dir)
 
+            # TODO: when should I delete this data...?
 
-        model_name, _ = os.path.splitext(uploaded_file.name)
-        training_id = random.randint(0, 10000)
-        training_dir = os.path.join(data_dir, "training_data_{}_{}".format(model_name, training_id))
-        training_dir = os.path.abspath(training_dir)
+            # Unzip data:
+            os.makedirs(training_dir, exist_ok=True)
+            process_zip(uploaded_file)
 
-        # TODO: when should I delete this data...?
+            # Display some messages:
+            st.info("Training data is being processed")
+            # my_bar.progress(10)
 
-        # Unzip data:
-        os.makedirs(training_dir, exist_ok=True)
-        with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
-            zip_ref.extractall(training_dir)
+            # Start training:
+            training_dir = os.path.join(training_dir, model_name)
+            tick = time.time()
+            with st.spinner('Training has started...'):
+                training_was_successful, output_message = start_cellpose_training(training_dir)
+            training_runtime = time.time() - tick
 
-        # Display some messages:
-        st.info("Training data is being processed")
-        # my_bar.progress(10)
+            if not training_was_successful:
+                # st.error("Training could not be completed")
+                st.error("Training could not be completed. See error message below:")
+                st.write(output_message)
+            else:
+                # my_bar.progress(90)
+                models_dir = os.path.join(training_dir, "training_images", "models")
+                out_zip_file = os.path.join(training_dir, "{}_trained_models.zip".format(model_name))
 
-        # Start training:
-        training_dir = os.path.join(training_dir, model_name)
-        tick = time.time()
-        with st.spinner('Training has started...'):
-            training_was_successful, output_message = start_cellpose_training(training_dir)
-        training_runtime = time.time() - tick
+                with zipfile.ZipFile(out_zip_file, mode="w") as archive:
+                    for file_path in pathlib.Path(models_dir).iterdir():
+                        archive.write(file_path, arcname=file_path.name)
 
-        if not training_was_successful:
-            # st.error("Training could not be completed")
-            st.error("Training could not be completed. See error message below:")
-            st.write(output_message)
-        else:
-            # my_bar.progress(90)
-            models_dir = os.path.join(training_dir, "training_images", "models")
-            out_zip_file = os.path.join(training_dir, "{}_trained_models.zip".format(model_name))
+                st.success("Training was completed successfully in {:.2f} s. You can now download "
+                           "the trained cellpose model.".format(training_runtime))
+                # with st.sidebar:
+                with open(out_zip_file, "rb") as fp:
+                    btn = st.download_button(
+                        label="Download the trained models (zip)",
+                        data=fp,
+                        file_name=os.path.split(out_zip_file)[1],
+                        mime="application/zip"
+                    )
 
-            with zipfile.ZipFile(out_zip_file, mode="w") as archive:
-                for file_path in pathlib.Path(models_dir).iterdir():
-                    archive.write(file_path, arcname=file_path.name)
+                # my_bar.progress(100)
+                # st.download_button('Download training log', output_message)
 
-            st.success("Training was completed successfully in {} s. You can now download the trained cellpose model:".format(training_runtime))
-            with open(out_zip_file, "rb") as fp:
-                btn = st.download_button(
-                    label="Download the trained models (zip)",
-                    data=fp,
-                    file_name=os.path.split(out_zip_file)[1],
-                    mime="application/zip"
-                )
+            # TODO: cleanup?
 
-            # my_bar.progress(100)
-            st.download_button('Download training log', output_message)
-
-        # TODO: cleanup?
