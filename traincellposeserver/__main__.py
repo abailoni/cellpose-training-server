@@ -1,5 +1,3 @@
-# import argparse
-# import os
 import click
 import streamlit.cli
 import os

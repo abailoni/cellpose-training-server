@@ -1,5 +1,4 @@
 import argparse
-import os
 import pathlib
 import time
 import zipfile
@@ -173,18 +172,3 @@ if __name__ == '__main__':
             st.download_button('Download training log', output_message)
 
         # TODO: cleanup?
-
-        # # To read file as bytes:
-        # bytes_data = uploaded_file.getvalue()
-        # #st.write(bytes_data)
-        # st.write(f"The file has {len(bytes_data)} bytes")
-        # # process the file
-        # processed = bytes([0] * len(bytes_data))
-        # # send to webapp to make downloadable link
-        # outname = "processed.bin"
-        # b64 = base64.b64encode(bytes_data).decode()
-        # href = f'<a href="data:file/zip;base64,{b64}" download=\'{outname}\'>\
-        #        Download processed file\
-        #    </a>'
-        # st.sidebar.markdown(href, unsafe_allow_html=True)
-        # st.sidebar
