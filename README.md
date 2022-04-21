@@ -1,5 +1,11 @@
-# How to use
+Tool to train custom cellpose models via the browser on a remote server with GPU support, given cellpose training images generated using the [Train-Cellpose](http://github.com/abailoni/cellpose-training-gui) tool.
+
+![](images/training-remotely.gif)
+
+# How to install
 Coming soon
+
+
 
 [comment]: <> (# Installation)
 

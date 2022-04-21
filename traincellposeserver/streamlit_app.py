@@ -118,19 +118,18 @@ if __name__ == '__main__':
     data_dir = args.temp_data_dir
     os.makedirs(data_dir, exist_ok=True)
 
-    training_was_successful = None
     uploaded_file = st.file_uploader("Upload cellpose training data", type="zip")
     if uploaded_file is not None:
         # Display bar:
         # my_bar = st.progress(0)
+
+        # Button for starting training:
         btn = st.button("Start training")
         if btn:
             model_name, _ = os.path.splitext(uploaded_file.name)
             training_id = random.randint(0, 10000)
             training_dir = os.path.join(data_dir, "training_data_{}_{}".format(model_name, training_id))
             training_dir = os.path.abspath(training_dir)
-
-            # TODO: when should I delete this data...?
 
             # Unzip data:
             os.makedirs(training_dir, exist_ok=True)
@@ -173,3 +172,7 @@ if __name__ == '__main__':
 
                 # my_bar.progress(100)
                 # st.download_button('Download training log', output_message)
+
+        else:
+            # Clean any temporary training data that was stored on disk:
+            shutil.rmtree(data_dir)
