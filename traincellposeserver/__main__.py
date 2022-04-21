@@ -10,7 +10,6 @@ def main():
 
 @main.command("start")
 @click.argument('temp_dir')
-# @click.option('--debug/--no-debug', default=False)
 def main_streamlit(temp_dir):
     dirname = os.path.dirname(__file__)
     streamlit_app = os.path.join(dirname, 'streamlit_app.py')

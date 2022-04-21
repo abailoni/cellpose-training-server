@@ -34,19 +34,13 @@ def start_cellpose_training(training_folder):
     if not os.path.exists(training_config_path):
         return False, "Training config `train_config.yml` not found in zip file"
 
-
     # Load config:
     with open(training_config_path, 'r') as f:
         training_config = yaml.load(f, Loader=yaml.FullLoader)
 
-    # # FIXME: TEMP check
-    # shutil.copytree(training_images_dir, os.path.join(training_images_dir, "models"))
-    # training_was_successful, error_message = True, None
-
     training_was_successful, message = \
         _run_training(training_images_dir,
                       *training_config.get("cellpose_args", []),
-                      # out_models_folder=os.path.split(train_folder)[0],
                       **training_config.get("cellpose_kwargs", {}))
 
     return training_was_successful, message
@@ -114,7 +108,6 @@ def process_zip(file_object):
             zip_ref.extractall(training_dir)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--temp_data_dir', required=False,
@@ -180,6 +173,3 @@ if __name__ == '__main__':
 
                 # my_bar.progress(100)
                 # st.download_button('Download training log', output_message)
-
-            # TODO: cleanup?
-
