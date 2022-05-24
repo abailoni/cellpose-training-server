@@ -174,5 +174,7 @@ if __name__ == '__main__':
                 # st.download_button('Download training log', output_message)
 
         else:
+            pass
             # Clean any temporary training data that was stored on disk:
-            shutil.rmtree(data_dir)
+            # shutil.rmtree(data_dir)
+
