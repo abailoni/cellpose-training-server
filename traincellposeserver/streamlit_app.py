@@ -106,6 +106,9 @@ def process_zip(file_object, train_dir):
     if file_object is not None:
         with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
             zip_ref.extractall(train_dir)
+            st.write("Extracted")
+            from os import listdir
+            st.write(listdir(train_dir))
 
 
 if __name__ == '__main__':
