@@ -102,10 +102,10 @@ def _run_training(train_folder,
 
 
 @st.cache(suppress_st_warning=True)
-def process_zip(file_object):
+def process_zip(file_object, train_dir):
     if file_object is not None:
         with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
-            zip_ref.extractall(training_dir)
+            zip_ref.extractall(train_dir)
 
 
 if __name__ == '__main__':
@@ -133,17 +133,20 @@ if __name__ == '__main__':
 
             # Unzip data:
             os.makedirs(training_dir, exist_ok=True)
-            process_zip(uploaded_file)
+            process_zip(uploaded_file, train_dir=training_dir)
+            assert os.path.exists(training_dir), "Check1"
 
             # Display some messages:
             st.info("Training data is being processed")
             # my_bar.progress(10)
 
             # Start training:
-            training_dir = os.path.join(training_dir, model_name)
+            st.info(model_name)
+            training_path = os.path.join(training_dir, model_name)
+            assert os.path.exists(training_path), "Check2"
             tick = time.time()
             with st.spinner('Training has started...'):
-                training_was_successful, output_message = start_cellpose_training(training_dir)
+                training_was_successful, output_message = start_cellpose_training(training_path)
             training_runtime = time.time() - tick
 
             if not training_was_successful:
@@ -152,8 +155,8 @@ if __name__ == '__main__':
                 st.write(output_message)
             else:
                 # my_bar.progress(90)
-                models_dir = os.path.join(training_dir, "training_images", "models")
-                out_zip_file = os.path.join(training_dir, "{}_trained_models.zip".format(model_name))
+                models_dir = os.path.join(training_path, "training_images", "models")
+                out_zip_file = os.path.join(training_path, "{}_trained_models.zip".format(model_name))
 
                 with zipfile.ZipFile(out_zip_file, mode="w") as archive:
                     for file_path in pathlib.Path(models_dir).iterdir():
@@ -174,6 +177,7 @@ if __name__ == '__main__':
                 # st.download_button('Download training log', output_message)
 
         else:
+            st.write("Nothing to delete")
             pass
             # Clean any temporary training data that was stored on disk:
             # shutil.rmtree(data_dir)
