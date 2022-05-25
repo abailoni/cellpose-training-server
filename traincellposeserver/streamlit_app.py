@@ -145,7 +145,8 @@ if __name__ == '__main__':
 
             # Start training:
             st.info(model_name)
-            training_path = os.path.join(training_dir, model_name)
+            # training_path = os.path.join(training_dir, model_name)
+            training_path = training_dir
             assert os.path.exists(training_path), "Check2"
             tick = time.time()
             with st.spinner('Training has started...'):
