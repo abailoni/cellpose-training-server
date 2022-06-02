@@ -3,7 +3,10 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-install_deps = ['cellpose', 'streamlit', 'pyyaml', 'imagecodecs']
+install_deps = ['cellpose',
+                'streamlit==1.3.1', # TODO: Find a replacement for the REPORT_CONTEXT_ATTR_NAME function missing in recent versions
+                'pyyaml',
+                'imagecodecs']
 
 setuptools.setup(
     name="traincellposeserver",

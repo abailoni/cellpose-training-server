@@ -9,10 +9,8 @@ USER user
 # Create a working directory
 WORKDIR /app/training_data_dir
 
-#TODO: test with copying from dev branch and istalling locally...?
 # Install cellpose and streamlit
 RUN conda run -n base pip install --no-cache-dir --compile "git+https://github.com/abailoni/cellpose-training-server#egg=traincellposeserver"
-#RUN conda run -n base pip install --no-cache-dir --compile -e "vcs+protocol://github.com/abailoni/cellpose-training-gui#egg=traincellposeserver&subdirectory=traincellpose-server-daemon"
 
 #conda env update -n base -f /app/environment.yml \
 # && rm /app/environment.yml \

@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 import sys
+from os import listdir
 
 import yaml
 
@@ -16,6 +17,47 @@ try:
     import cellpose
 except ImportError:
     cellpose = None
+
+
+from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
+from threading import current_thread
+from contextlib import contextmanager
+from io import StringIO
+
+@contextmanager
+def st_redirect(src, dst):
+    placeholder = st.empty()
+    output_func = getattr(placeholder, dst)
+
+    with StringIO() as buffer:
+        old_write = src.write
+
+        def new_write(b):
+            if getattr(current_thread(), REPORT_CONTEXT_ATTR_NAME, None):
+                buffer.write(b + '')
+                output_func(buffer.getvalue() + '')
+            else:
+                old_write(b)
+
+        try:
+            src.write = new_write
+            yield
+        finally:
+            src.write = old_write
+
+
+@contextmanager
+def st_stdout(dst):
+    "this will show the prints"
+    with st_redirect(sys.stdout, dst):
+        yield
+
+
+@contextmanager
+def st_stderr(dst):
+    "This will show the logging"
+    with st_redirect(sys.stderr, dst):
+        yield
 
 
 def start_cellpose_training(training_folder):
@@ -81,9 +123,23 @@ def _run_training(train_folder,
         command += "--{} {} ".format(kwarg, cellpose_kwargs[kwarg])
 
     # print(command)
-    output = subprocess.run(command, shell=True, capture_output=True, text=True)
+    fake_command = "ls"
+    output = subprocess.run(fake_command, shell=True, capture_output=True, text=True)
     if output.returncode != 0:
         return False, output.stderr
+
+    # process = subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE)
+    with st_stdout("code"), st_stderr("code"):
+        print(command)
+        with subprocess.Popen(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as process:
+            for line in process.stdout:
+                print(line)
+                # logging.warning(line)
+            # print(line)
+    # for c in iter(lambda: process.stdout.read(1), b""):
+    #     sys.stdout.buffer.write(c)
+    #     logging.warning(f'Counting... 3')
+        # f.buffer.write(c)
 
     if out_models_folder is not None:
         os.makedirs(out_models_folder, exist_ok=True)
@@ -106,9 +162,6 @@ def process_zip(file_object, train_dir):
     if file_object is not None:
         with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
             zip_ref.extractall(train_dir)
-            st.write("Extracted")
-            from os import listdir
-            st.write(listdir(train_dir))
 
 
 if __name__ == '__main__':
@@ -121,6 +174,8 @@ if __name__ == '__main__':
     data_dir = args.temp_data_dir
     os.makedirs(data_dir, exist_ok=True)
 
+
+    # logging.warning(f'Counting... 3')
     uploaded_file = st.file_uploader("Upload cellpose training data", type="zip")
     if uploaded_file is not None:
         # Display bar:
@@ -140,13 +195,18 @@ if __name__ == '__main__':
             assert os.path.exists(training_dir), "Check1"
 
             # Display some messages:
-            st.info("Training data is being processed")
+            # st.info("Training data is being processed")
             # my_bar.progress(10)
 
             # Start training:
-            st.info(model_name)
+            # st.info(model_name)
+
+            sub_folders = listdir(training_dir)
+            if "training_images" not in sub_folders:
+                training_path = os.path.join(training_dir, model_name)
             # training_path = os.path.join(training_dir, model_name)
-            training_path = training_dir
+            else:
+                training_path = training_dir
             assert os.path.exists(training_path), "Check2"
             tick = time.time()
             with st.spinner('Training has started...'):
@@ -166,23 +226,24 @@ if __name__ == '__main__':
                     for file_path in pathlib.Path(models_dir).iterdir():
                         archive.write(file_path, arcname=file_path.name)
 
-                st.success("Training was completed successfully in {:.2f} s. You can now download "
-                           "the trained cellpose model.".format(training_runtime))
-                # with st.sidebar:
-                with open(out_zip_file, "rb") as fp:
-                    btn = st.download_button(
-                        label="Download the trained models (zip)",
-                        data=fp,
-                        file_name=os.path.split(out_zip_file)[1],
-                        mime="application/zip"
-                    )
+                with st.sidebar:
+                    st.success("Training was completed successfully in {:.2f} s. You can now download "
+                               "the trained cellpose model:".format(training_runtime))
+                    # with st.sidebar:
+                    with open(out_zip_file, "rb") as fp:
+                        btn = st.download_button(
+                            label="Download the trained models (zip)",
+                            data=fp,
+                            file_name=os.path.split(out_zip_file)[1],
+                            mime="application/zip"
+                        )
 
                 # my_bar.progress(100)
                 # st.download_button('Download training log', output_message)
 
         else:
-            st.write("Nothing to delete")
+            # st.write("Deleting old training data")
             pass
             # Clean any temporary training data that was stored on disk:
-            # shutil.rmtree(data_dir)
+            shutil.rmtree(data_dir)
 
