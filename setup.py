@@ -4,8 +4,9 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 install_deps = ['cellpose',
-                'streamlit==1.3.1', # TODO: Find a replacement for the REPORT_CONTEXT_ATTR_NAME function missing in recent versions
+                'streamlit~=1.3.1', # TODO: Find a replacement for the REPORT_CONTEXT_ATTR_NAME function missing in recent versions
                 'pyyaml',
+                'protobuf~=3.19.0',
                 'imagecodecs']
 
 setuptools.setup(
