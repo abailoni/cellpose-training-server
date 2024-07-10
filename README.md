@@ -12,7 +12,7 @@ Tool to train custom cellpose models via the browser on a remote server with GPU
 
 - Move to the repository folder with `cd cellpose-training-server`
 
-- Build the docker image with `docker build -t cellposetrainingserverapp:latest ./doverkfiles`
+- Build the docker image with `docker build -t cellposetrainingserverapp:latest ./dockerfiles`
 
 ### How to start the docker image 
 
