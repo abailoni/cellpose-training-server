@@ -1,28 +1,31 @@
-Tool to train custom cellpose models via the browser on a remote server with GPU support, given cellpose training images generated using the [Train-Cellpose](http://github.com/abailoni/cellpose-training-gui) tool.
+# Cellpose Training Server
+
+Tool to train custom cellpose models via the browser on a remote server with GPU support, given cellpose training images generated using the [Cellpose Annotation Tool](https://git.embl.de/grp-alexandrov/cellpose-training-gui) tool.
 
 ![](images/training-remotely.gif)
 
-# How to install
-Coming soon
+## Installation and usage on the server with GPU support
 
+### How to build the docker image
 
+- Clone this repository with `git clone git@git.embl.de:grp-alexandrov/cellpose-training-server.git`
 
-[comment]: <> (# Installation)
+- Move to the repository folder with `cd cellpose-training-server`
 
-[comment]: <> (- Create a conda environment with pyTorch and CUDA support)
+- Build the docker image with `docker build -t cellposetrainingserverapp:latest ./doverkfiles`
 
-[comment]: <> (  - This could look like `conda create --name trCellServer pytorch torchvision torchaudio cudatoolkit=11.3  -c pytorch`)
+### How to start the docker image 
 
-[comment]: <> (- Activate the conda environment you created in the previous step: `conda activate trCellServer` )
+- If you want to temporarily start the docker image, you can run the following command:
 
-[comment]: <> (- `pip install -e "vcs+protocol://github.com/abailoni/cellpose-training-gui#egg=traincellposeserver&subdirectory=traincellpose-server-daemon"` )
+  ```shell
+  docker run -p 8501:8501 --gpus all cellposetrainingserverapp:latest
+  ```
 
-[comment]: <> (# How to run)
+- If you want to start the docker image and keep it running in the background (even when your server is restarted), you can run the following command:
 
-[comment]: <> (- Activate env)
-
-[comment]: <> (- `python -m traincellposeserver`)
-
-[comment]: <> (- Optionally, you can specify a directory where to store the temporary training data:)
-
-[comment]: <> (- `python -m traincellposeserver -d \PATH-TO-TEMP-DATA-DIR`)
+  ```shell
+  docker run -p 8501:8501 --gpus all --restart unless-stopped -d  cellposetrainingserverapp:latest
+  ```
+  
+Afterwards, you can access the tool via the browser at `http://localhost:8501`
