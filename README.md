@@ -12,7 +12,11 @@ Tool to train custom cellpose models via the browser on a remote server with GPU
 
 - Move to the repository folder with `cd cellpose-training-server`
 
-- Build the docker image with `docker build -t cellposetrainingserverapp:latest ./dockerfiles`
+- To build the docker image, you will need to provide credentials to access the GitLab repository. Follow instructions [here](https://grp-alexandrov.embl-community.io/napari-spacem-qc/user-guide/access/local-installation.html#setting-up-private-package-registry) if you do not already have a `pip.config` file configured with your credentials. After that, you can use the tokens from your `pip.conf` file for the following command:
+
+  ```
+  docker build -t cellposetrainingserverapp:latest --build-arg CI_DEPLOY_USER=__your_token__ --build-arg CI_DEPLOY_PASSWORD="your_password" ./dockerfiles
+  ```
 
 ### How to start the docker image 
 
